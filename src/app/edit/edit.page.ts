@@ -12,7 +12,7 @@ import { IZapatilla } from '../shared/interface';
 })
 export class EditPage implements OnInit {
   id:string;
-  zapa: IZapatilla;
+  zapa:any;
   zapaForm: FormGroup;
 
   constructor(
@@ -25,15 +25,40 @@ export class EditPage implements OnInit {
   ngOnInit() {
 
     this.id = this.activatedRoute.snapshot.params.id;
-    this.zapadbService.getItem(this.id).then(
-      (data:IZapatilla) => {this.zapa = data;
-        this.zapaForm = new FormGroup({
-          nombre: new FormControl(this.zapa.nombre),
-          descripcion: new FormControl(this.zapa.descripcion),
-          precio: new FormControl(this.zapa.precio),
-          urlImagen: new FormControl(this.zapa.urlImagen)
-        });}
-    );
+    //this.zapa = this.zapadbService.readZapatillaById(this.id);
+
+
+    this.zapadbService.readZapatillas().subscribe(data=>{
+      let zapatillas = data.map(e=>{
+        return {
+          id: e.payload.doc.id,
+          nombre: e.payload.doc.data()['nombre'],
+          descripcion: e.payload.doc.data()['descripcion'],
+          precio:e.payload.doc.data()['precio'],
+          urlImagen:e.payload.doc.data()['urlImagen']
+        };
+      })
+      console.log(zapatillas);
+      zapatillas.forEach( element =>{
+        if(element.id == this.id){
+          this.zapa = element;
+          this.zapaForm = new FormGroup({
+            nombre: new FormControl(this.zapa.nombre),
+            descripcion: new FormControl(this.zapa.descripcion),
+            precio: new FormControl(this.zapa.precio),
+            urlImagen: new FormControl(this.zapa.urlImagen)
+      })
+        }
+      }
+      );
+
+
+    })
+
+
+
+   
+
 
     this.zapaForm = new FormGroup({
       nombre: new FormControl(''),
@@ -47,14 +72,28 @@ export class EditPage implements OnInit {
 
   onSubmit(){
     this.zapa = this.zapaForm.value;
-    
-    let nextKey = this.id;
-    this.zapa.id = nextKey;
-    this.zapadbService.setItem(nextKey, this.zapa);
-    this.zapadbService.remove(nextKey);
-    console.warn(this.zapaForm.value);
+    this.UpdateRecord(this.zapa);
 
     this.router.navigate(['']);
+  }
+
+  EditZapatilla(zapa){
+    zapa.isEdit = true;
+    zapa.EditNombre = zapa.nombre;
+    zapa.EditDescripcion = zapa.descripcion;
+    zapa.EditPrecio = zapa.precio;
+    zapa.EditUrlImagen = zapa.urlImagen;
+  }
+
+  UpdateRecord(zapaRow){
+    let zapa = {};
+    zapa['nombre'] = zapaRow.EditNombre;
+    zapa['descripcion'] = zapaRow.EditDescripcion;
+    zapa['precio'] = zapaRow.EditPrecio;
+    zapa['urlImagen'] = zapaRow.EditUrlImagen;
+
+    this.zapadbService.updateZapatilla(this.id,zapaRow);
+    zapaRow.isEdit = false;
   }
 
 }

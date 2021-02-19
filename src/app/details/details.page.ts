@@ -11,7 +11,7 @@ import { IZapatilla } from '../shared/interface';
 })
 export class DetailsPage implements OnInit {
   id:string;
-  public zapa:IZapatilla;
+  public zapa:any;
 
   constructor(private activatedRouter: ActivatedRoute,
     private router: Router,
@@ -20,9 +20,29 @@ export class DetailsPage implements OnInit {
 
   ngOnInit() {
     this.id = this.activatedRouter.snapshot.params.id;
-    this.zapadbService.getItem(this.id).then(
-      (data:IZapatilla) => this.zapa = data
-    );
+    //this.zapa = this.zapadbService.readZapatillaById(this.id);
+    
+    this.zapadbService.readZapatillas().subscribe(data=>{
+      let zapatillas = data.map(e=>{
+        return {
+          id: e.payload.doc.id,
+          nombre: e.payload.doc.data()['nombre'],
+          descripcion: e.payload.doc.data()['descripcion'],
+          precio:e.payload.doc.data()['precio'],
+          urlImagen:e.payload.doc.data()['urlImagen']
+        };
+      })
+      console.log(zapatillas);
+      zapatillas.forEach( element =>{
+        if(element.id == this.id){
+          this.zapa = element;
+        }
+      }
+      );
+
+
+    })
+    
   }
 
   editRecord(movie){
@@ -39,7 +59,7 @@ export class DetailsPage implements OnInit {
           icon: 'delete',
           text: 'ACEPTAR',
           handler: () =>{
-            this.zapadbService.remove(id);
+            this.RemoveZapatilla(id);
             this.router.navigate(['home']);
           }
         },
@@ -54,6 +74,12 @@ export class DetailsPage implements OnInit {
       ]
     });
     toast.present();
+  }
+
+
+  
+  RemoveZapatilla(zapaId){
+    this.zapadbService.deleteZapatilla(zapaId);
   }
 
 }

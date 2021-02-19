@@ -11,8 +11,12 @@ import { IZapatilla } from '../shared/interface';
   styleUrls: ['./create.page.scss'],
 })
 export class CreatePage implements OnInit {
-  zapa: IZapatilla;
-  zapatillas:IZapatilla[];
+  
+  zapatillas:any;
+  zapaNombre: string;
+  zapaDescripcion:string;
+  zapaPrecio:string;
+  zapaUrlImagen:string;
   zapaForm: FormGroup;
 
   constructor(
@@ -40,7 +44,7 @@ export class CreatePage implements OnInit {
           icon: 'save',
           text: 'ACEPTAR',
           handler: () => {
-            this.saveZapa();
+            this.CreateZapatilla();
             this.router.navigate(['home']);
           }
           },
@@ -58,17 +62,23 @@ export class CreatePage implements OnInit {
     toast.present();
   }
 
-  saveZapa(){
-    this.zapadbService.getAll().then(data => {this.zapatillas = data
-      
-      
-    }).finally(()=>{
-      this.zapa = this.zapaForm.value;
-      this.zapa.id = (Math.max.apply(Math, this.zapatillas.map(function(o) { return o.id; }))+1).toString();
-      this.zapadbService.setItem(this.zapa.id, this.zapa);
-    console.warn(this.zapaForm.value);});
+  CreateZapatilla(){
+    this.zapatillas = this.zapaForm.value;
+    let zapa = {};
+    zapa['nombre'] = this.zapatillas.nombre;
+    zapa['descripcion'] = this.zapatillas.descripcion;
+    zapa['precio'] = this.zapatillas.precio;
+    zapa['urlImagen'] = this.zapatillas.urlImagen;
     
-   
+    this.zapadbService.createZapatilla(zapa).then(resp =>{
+      this.zapaNombre = "";
+      this.zapaDescripcion = "";
+      this.zapaPrecio = "";
+      this.zapaUrlImagen = "";
+    }).catch(error => {
+      console.log(error);
+      
+    });
   }
 
 }
